@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizador de Algoritmos & Complexidade Big-O</title>
+  <meta name="description" content="Visualizador interativo de algoritmos de ordenação e busca com análise de complexidade Big-O, áudio sintetizado em tempo real e rastreamento de código para estudantes de Engenharia de Software.">
+  <meta name="theme-color" content="#0b0f19">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">
+          <span>&lt;/&gt;</span>
+        </div>
+        <div class="brand-titles">
+          <h1>AlgoVisualizer</h1>
+          <span class="badge-subtitle">Engenharia de Software • Big-O</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-sound" class="btn-tool" title="Alternar Efeitos Sonoros Frequenciais">
+          <span id="sound-icon">🔊</span> Som
+        </button>
+        <button id="btn-guide" class="btn-tool" title="Guia Teórico de Complexidade">
+          📘 Teoria Big-O
+        </button>
+        <a href="https://github.com/VeronicaSkye/visualizador-algoritmos" target="_blank" rel="noopener noreferrer" class="btn-tool btn-github">
+          🐙 GitHub
+        </a>
+      </div>
+    </header>
+
+    <!-- Barra de Seleção de Algoritmo -->
+    <nav class="algorithm-nav" id="algorithm-nav">
+      <button class="nav-tab active" data-algo="bubble">
+        <span class="tab-icon">🫧</span> Bubble Sort
+      </button>
+      <button class="nav-tab" data-algo="selection">
+        <span class="tab-icon">🎯</span> Selection Sort
+      </button>
+      <button class="nav-tab" data-algo="insertion">
+        <span class="tab-icon">📥</span> Insertion Sort
+      </button>
+      <button class="nav-tab" data-algo="quick">
+        <span class="tab-icon">⚡</span> Quick Sort
+      </button>
+      <button class="nav-tab" data-algo="merge">
+        <span class="tab-icon">🧩</span> Merge Sort
+      </button>
+      <button class="nav-tab" data-algo="binary">
+        <span class="tab-icon">🔍</span> Busca Binária
+      </button>
+    </nav>
+
+    <!-- Painel de Controles -->
+    <section class="controls-panel">
+      <div class="control-group">
+        <button id="btn-generate" class="btn-ctrl btn-secondary">
+          🎲 Novo Array
+        </button>
+
+        <div class="select-wrapper">
+          <label for="array-type">Disposição:</label>
+          <select id="array-type" class="ctrl-select">
+            <option value="random">Aleatório</option>
+            <option value="nearly-sorted">Quase Ordenado</option>
+            <option value="reversed">Invertido (Pior Caso)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="control-group sliders-group">
+        <div class="slider-control">
+          <label for="array-size">Tamanho: <span id="size-val">35</span></label>
+          <input type="range" id="array-size" min="10" max="80" value="35">
+        </div>
+
+        <div class="slider-control">
+          <label for="anim-speed">Velocidade: <span id="speed-val">Médio</span></label>
+          <input type="range" id="anim-speed" min="5" max="250" value="70">
+        </div>
+      </div>
+
+      <div class="control-group actions-group">
+        <button id="btn-play" class="btn-ctrl btn-primary">
+          ▶ Iniciar
+        </button>
+        <button id="btn-pause" class="btn-ctrl btn-secondary" disabled>
+          ⏸ Pausar
+        </button>
+        <button id="btn-step" class="btn-ctrl btn-secondary" title="Executar um passo por vez">
+          ⏭ Passo
+        </button>
+        <button id="btn-reset" class="btn-ctrl btn-danger">
+          ⏹ Resetar
+        </button>
+      </div>
+    </section>
+
+    <!-- Arena Principal de Visualização das Barras -->
+    <main class="visualizer-stage">
+      <div class="bars-container" id="bars-container">
+        <!-- Barras geradas dinamicamente via JS -->
+      </div>
+
+      <!-- Legenda de Estados de Cores -->
+      <div class="legend-bar">
+        <div class="legend-item"><span class="legend-dot color-default"></span> Padrão</div>
+        <div class="legend-item"><span class="legend-dot color-compare"></span> Comparando</div>
+        <div class="legend-item"><span class="legend-dot color-swap"></span> Trocando / Sobrescrevendo</div>
+        <div class="legend-item"><span class="legend-dot color-pivot"></span> Pivô / Alvo</div>
+        <div class="legend-item"><span class="legend-dot color-sorted"></span> Ordenado</div>
+      </div>
+    </main>
+
+    <!-- Seção Inferior: Métricas em Tempo Real + Teoria Big-O + Código -->
+    <section class="analysis-grid">
+      
+      <!-- Card 1: Métricas de Execução -->
+      <div class="card-panel metrics-panel">
+        <div class="card-header">
+          <h3>📊 Métricas em Tempo Real</h3>
+          <span class="status-pill" id="algo-status">Pronto</span>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <span class="metric-label">Comparações</span>
+            <span class="metric-value" id="metric-comparisons">0</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Trocas / Gravações</span>
+            <span class="metric-value" id="metric-swaps">0</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Acessos ao Array</span>
+            <span class="metric-value" id="metric-accesses">0</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Tempo Decorrido</span>
+            <span class="metric-value" id="metric-time">0 ms</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Análise Assintótica Big-O -->
+      <div class="card-panel complexity-panel">
+        <div class="card-header">
+          <h3>🧠 Análise de Complexidade</h3>
+          <span class="algo-name-badge" id="current-algo-title">Bubble Sort</span>
+        </div>
+        <div class="complexity-details">
+          <div class="complexity-row">
+            <span class="complexity-label">Melhor Caso:</span>
+            <span class="complexity-badge best" id="comp-best">O(n)</span>
+            <small id="desc-best">Array já ordenado</small>
+          </div>
+          <div class="complexity-row">
+            <span class="complexity-label">Caso Médio:</span>
+            <span class="complexity-badge average" id="comp-avg">O(n²)</span>
+            <small id="desc-avg">Elementos aleatórios</small>
+          </div>
+          <div class="complexity-row">
+            <span class="complexity-label">Pior Caso:</span>
+            <span class="complexity-badge worst" id="comp-worst">O(n²)</span>
+            <small id="desc-worst">Array em ordem inversa</small>
+          </div>
+          <div class="complexity-row">
+            <span class="complexity-label">Espaço Auxiliar:</span>
+            <span class="complexity-badge space" id="comp-space">O(1)</span>
+            <small id="desc-space">Ordenação in-place</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Rastreamento de Código / Linha Ativa -->
+      <div class="card-panel code-panel">
+        <div class="card-header">
+          <h3>💻 Execução do Código</h3>
+          <span class="lang-tag">JavaScript ES6</span>
+        </div>
+        <pre class="code-editor"><code id="code-snippet">
+        </code></pre>
+        <div class="step-explanation" id="step-explanation">
+          Selecione um algoritmo e clique em <strong>Iniciar</strong> para ver o rastreamento em tempo real.
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Modal de Teoria Big-O & Engenharia de Software -->
+    <div class="modal-overlay" id="guide-modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Fundamentos de Algoritmos & Análise Assintótica</h2>
+          <button class="modal-close" id="btn-close-guide">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="guide-topic">
+            <h3>🎯 O que é a Notação Big-O?</h3>
+            <p>
+              Na Engenharia de Software, a notação <strong>Big-O</strong> mede como o tempo de execução ou o consumo de memória de um algoritmo cresce à medida que o tamanho dos dados de entrada ($n$) aumenta. Ela avalia a <em>eficiência e escalabilidade</em> de uma solução.
+            </p>
+          </div>
+
+          <div class="guide-topic">
+            <h3>⚡ Hierarquia das Complexidades Mais Comuns</h3>
+            <div class="table-responsive">
+              <table class="complexity-table">
+                <thead>
+                  <tr>
+                    <th>Notação</th>
+                    <th>Nome</th>
+                    <th>Exemplo Típico</th>
+                    <th>Desempenho</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>O(1)</code></td>
+                    <td>Constante</td>
+                    <td>Acessar elemento por índice em um array</td>
+                    <td><span class="badge-perf excellent">Excelente</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>O(log n)</code></td>
+                    <td>Logarítmica</td>
+                    <td>Busca Binária</td>
+                    <td><span class="badge-perf great">Muito Bom</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>O(n)</code></td>
+                    <td>Linear</td>
+                    <td>Busca Simples (varredura de ponta a ponta)</td>
+                    <td><span class="badge-perf good">Aceitável</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>O(n log n)</code></td>
+                    <td>Quasilinear</td>
+                    <td>Merge Sort, Quick Sort (médio), Heap Sort</td>
+                    <td><span class="badge-perf fair">Padrão Ouro p/ Ordenação</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>O(n²)</code></td>
+                    <td>Quadrática</td>
+                    <td>Bubble Sort, Selection Sort (dois loops aninhados)</td>
+                    <td><span class="badge-perf bad">Lento para grandes $n$</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="guide-topic">
+            <h3>💡 Por que esse conhecimento é valioso para entrevistas técnicas?</h3>
+            <p>
+              Grandes empresas de tecnologia avaliam se um engenheiro consegue prever gargalos de performance antes de escrever o código. Saber quando escolher entre um algoritmo estável (como <strong>Merge Sort</strong>) e um algoritmo in-place de alta velocidade (como <strong>Quick Sort</strong>) é um diferencial decisivo!
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-ctrl btn-primary" id="btn-understood-guide">Fechar e Praticar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
